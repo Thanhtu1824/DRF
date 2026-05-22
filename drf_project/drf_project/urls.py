@@ -18,13 +18,18 @@ from django.contrib import admin
 from django.urls import path
 from api.brand.views import BrandList, BrandDetail
 from api.category.views import CategoryList, CategoryDetail
+from api.user.views import UserList, UserDetail
 
 urlpatterns = [
 
     path('admin/', admin.site.urls),
-    path('brand/', BrandList.as_view()),
+
+    path('brand', BrandList.as_view()),
     path('brand/<int:pk>', BrandDetail.as_view()),
-    path('category/', CategoryList.as_view()),
+
+    path('category', CategoryList.as_view()),
     path('category/<int:pk>', CategoryDetail.as_view()),
 
+    path('user', UserList.as_view()),
+    path('user/<int:pk>', UserDetail.as_view()),
 ]
