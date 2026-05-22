@@ -28,7 +28,7 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = 'django-insecure-3-&ib_%d(9t4ejc-n63h@7mi@nn2z897n43pchg8-e^cuaqxfq'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG') == 'True'
+DEBUG = os.getenv('DEBUG') == 'False'
 
 APPEND_SLASH = False
 
