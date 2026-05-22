@@ -2,18 +2,18 @@ from rest_framework import status
 from rest_framework.views import APIView, Http404
 from rest_framework.response import Response
 
-from api.models import Brand
-from .serializers import BrandSerializers
+from api.models import Category
+from .serializers import CategorySerializers
 
 
-class BrandList(APIView):
+class CategoryList(APIView):
     def get(self, request):
-        brand = Brand.objects.all()
-        serializer = BrandSerializers(brand, many=True)
+        categories = Category.objects.all()
+        serializer = CategorySerializers(categories, many=True)
         return Response (serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request):
-        serializer = BrandSerializers(data=request.data)
+        serializer = CategorySerializers(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response (serializer.data, status=status.HTTP_201_CREATED)
@@ -21,22 +21,22 @@ class BrandList(APIView):
         return Response (serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
 
-class BrandDetail(APIView):
+class CategoryDetail(APIView):
+
     def get_object(self, pk):
         try:
-            return Brand.objects.get(pk=pk)
-        except Brand.DoesNotExist:
+            return Category.objects.get(pk=pk)
+        except Category.DoesNotExist:
             raise Http404
         
     def get(self, request, pk):
-
-        brand = self.get_object(pk)
-        serializers = BrandSerializers(brand)
-        return Response(serializers.data, status=status.HTTP_200_OK)
+        categories = self.get_object(pk)
+        serializer = CategorySerializers(categories)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def put(self, request, pk):
-        brand = self.get_object(pk)
-        serializer = BrandSerializers(brand, data=request.data)
+        categories = self.get_object(pk)
+        serializer = CategorySerializers(categories, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED) 
