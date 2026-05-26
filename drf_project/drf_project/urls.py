@@ -19,6 +19,7 @@ from django.urls import path
 from api.brand.views import BrandList, BrandDetail
 from api.category.views import CategoryList, CategoryDetail
 from api.user.views import UserList, UserDetail
+from api.product.views import ProductList, ProductDetail
 
 urlpatterns = [
 
@@ -32,4 +33,7 @@ urlpatterns = [
 
     path('user', UserList.as_view()),
     path('user/<int:pk>', UserDetail.as_view()),
+
+    path('product', ProductList.as_view()),
+    path('product/<int:pk>', ProductDetail.as_view()),
 ]
