@@ -28,7 +28,7 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = 'django-insecure-3-&ib_%d(9t4ejc-n63h@7mi@nn2z897n43pchg8-e^cuaqxfq'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG') == 'False'
+DEBUG = os.getenv('DEBUG') == 'True'
 
 APPEND_SLASH = False
 
@@ -45,10 +45,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'api',
+    'api.user.apps.UserConfig',
+    'api.brand.apps.BrandConfig',
+    'api.category.apps.CategoryConfig',
+    'api.product.apps.ProductConfig',
 ]
 
-AUTH_USER_MODEL = "api.User"
+AUTH_USER_MODEL = 'user.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
