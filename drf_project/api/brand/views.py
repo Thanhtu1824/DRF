@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.views import APIView, Http404
 from rest_framework.response import Response
 
-from api.models import Brand
+from api.brand.models import Brand
 from .serializers import BrandSerializers
 
 
