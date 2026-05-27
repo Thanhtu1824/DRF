@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.views import APIView, Http404
 from rest_framework.response import Response
 
-from api.models import Category
+from api.category.models import Category
 from .serializers import CategorySerializers
 
 
