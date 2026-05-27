@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Brand
+from api.brand.models import Brand
 
 
 class BrandSerializers(serializers.ModelSerializer):
