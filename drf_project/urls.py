@@ -20,7 +20,12 @@ from django.urls import path
 
 from api.brand.views import BrandDetail, BrandList
 from api.category.views import CategoryDetail, CategoryList
-from api.product.views import ProductDetail, ProductList
+from api.product.views import (
+    ProductDetail,
+    ProductList,
+    ProductVariantDetail,
+    ProductVariantList,
+)
 from api.user.views import UserDetail, UserList
 
 urlpatterns = [
@@ -33,4 +38,6 @@ urlpatterns = [
     path('user/<int:pk>', UserDetail.as_view()),
     path('product', ProductList.as_view()),
     path('product/<int:pk>', ProductDetail.as_view()),
+    path('product-variant', ProductVariantList.as_view()),
+    path('product-variant/<int:pk>', ProductVariantDetail.as_view()),
 ]
