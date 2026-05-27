@@ -44,3 +44,7 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+
+# Format & Styling
+.vscode/
+setting.json
