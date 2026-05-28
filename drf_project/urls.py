@@ -29,6 +29,7 @@ from api.product.views import (
 from api.user.views import UserAddressDetail, UserAddressList, UserDetail, UserList
 from api.cart.views import CartDetail, CartList, CartItemDetail, CartItemList
 from api.voucher.views import VoucherDetail, VoucherList
+from api.order.views import OrderDetail, OrderList, OrderItemDetail, OrderItemList
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -50,4 +51,8 @@ urlpatterns = [
     path('cart-item/<int:pk>', CartItemDetail.as_view()),
     path('voucher', VoucherList.as_view()),
     path('voucher/<int:pk>', VoucherDetail.as_view()),
+    path('order', OrderList.as_view()),
+    path('order/<int:pk>', OrderDetail.as_view()),
+    path('order-item', OrderItemList.as_view()),
+    path('order-item/<int:pk>', OrderItemDetail.as_view()),
 ]
