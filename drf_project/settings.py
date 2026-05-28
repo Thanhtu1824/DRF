@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'api.product.apps.ProductConfig',
     'api.cart.apps.CartConfig',
     'api.voucher.apps.VoucherConfig',
+    'api.order.apps.OrderConfig',
 ]
 
 AUTH_USER_MODEL = 'user.User'
