@@ -27,6 +27,7 @@ from api.product.views import (
     ProductVariantList,
 )
 from api.user.views import UserAddressDetail, UserAddressList, UserDetail, UserList
+from api.cart.views import CartDetail, CartList, CartItemDetail, CartItemList
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -42,4 +43,8 @@ urlpatterns = [
     path('product/<int:pk>', ProductDetail.as_view()),
     path('product-variant', ProductVariantList.as_view()),
     path('product-variant/<int:pk>', ProductVariantDetail.as_view()),
+    path('cart', CartList.as_view()),
+    path('cart/<int:pk>', CartDetail.as_view()),
+    path('cart-item', CartItemList.as_view()),
+    path('cart-item/<int:pk>', CartItemDetail.as_view()),
 ]
