@@ -30,6 +30,7 @@ from api.user.views import UserAddressDetail, UserAddressList, UserDetail, UserL
 from api.cart.views import CartDetail, CartList, CartItemDetail, CartItemList
 from api.voucher.views import VoucherDetail, VoucherList
 from api.order.views import OrderDetail, OrderList, OrderItemDetail, OrderItemList
+from api.payment.views import PaymentDetail, PaymentList
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -55,4 +56,6 @@ urlpatterns = [
     path('order/<int:pk>', OrderDetail.as_view()),
     path('order-item', OrderItemList.as_view()),
     path('order-item/<int:pk>', OrderItemDetail.as_view()),
+    path('payment', PaymentList.as_view()),
+    path('payment/<int:pk>', PaymentDetail.as_view()),
 ]
