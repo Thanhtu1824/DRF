@@ -38,3 +38,27 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class UserAddress(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='addresses',
+    )
+    recipient_name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=20)
+    address_line = models.CharField(max_length=255)
+    ward = models.CharField(max_length=100, blank=True, null=True)
+    district = models.CharField(max_length=100, blank=True, null=True)
+    province = models.CharField(max_length=100)
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-is_default', '-updated_at']
+        indexes = [models.Index(fields=['user', 'is_default'])]
+
+    def __str__(self):
+        return f'{self.recipient_name} - {self.province}'
