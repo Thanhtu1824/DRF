@@ -27,22 +27,30 @@ class VoucherSerializers(serializers.ModelSerializer):
 
         if start_at and end_at and end_at <= start_at:
             raise serializers.ValidationError(
-                {'end_at': 'end_at must be greater than start_at.'}
+                {'end_at': 'Please choose an end time after the start time.'}
             )
 
         if discount_value is not None and discount_value <= 0:
             raise serializers.ValidationError(
-                {'discount_value': 'discount_value must be greater than 0.'}
+                {'discount_value': 'Please enter a discount value greater than 0.'}
             )
 
         if discount_type == Voucher.TYPE_PERCENT and discount_value and discount_value > 100:
             raise serializers.ValidationError(
-                {'discount_value': 'Percent discount must be less than or equal to 100.'}
+                {
+                    'discount_value': (
+                        'Please enter a percent discount from 1 to 100.'
+                    )
+                }
             )
 
         if max_discount_value is not None and max_discount_value <= 0:
             raise serializers.ValidationError(
-                {'max_discount_value': 'max_discount_value must be greater than 0.'}
+                {
+                    'max_discount_value': (
+                        'Please enter a maximum discount value greater than 0.'
+                    )
+                }
             )
 
         return attrs
