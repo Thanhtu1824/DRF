@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'api.brand.apps.BrandConfig',
     'api.category.apps.CategoryConfig',
     'api.product.apps.ProductConfig',
+    'api.cart.apps.CartConfig',
 ]
 
 AUTH_USER_MODEL = 'user.User'
