@@ -26,7 +26,7 @@ from api.product.views import (
     ProductVariantDetail,
     ProductVariantList,
 )
-from api.user.views import UserDetail, UserList
+from api.user.views import UserAddressDetail, UserAddressList, UserDetail, UserList
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -36,6 +36,8 @@ urlpatterns = [
     path('category/<int:pk>', CategoryDetail.as_view()),
     path('user', UserList.as_view()),
     path('user/<int:pk>', UserDetail.as_view()),
+    path('user-address', UserAddressList.as_view()),
+    path('user-address/<int:pk>', UserAddressDetail.as_view()),
     path('product', ProductList.as_view()),
     path('product/<int:pk>', ProductDetail.as_view()),
     path('product-variant', ProductVariantList.as_view()),
