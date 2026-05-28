@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 from api.order.models import Order
@@ -39,6 +40,16 @@ class Payment(models.Model):
     payment_status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     paid_at = models.DateTimeField(blank=True, null=True)
+    is_fund_in = models.BooleanField(default=False)
+    fund_in_at = models.DateTimeField(blank=True, null=True)
+    fund_in_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='funded_payments',
+    )
+    fund_in_note = models.TextField(blank=True, null=True)
     deleted_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

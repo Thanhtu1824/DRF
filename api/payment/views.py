@@ -75,12 +75,49 @@ class PaymentDetail(APIView):
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
+
+class PaymentFundIn(APIView):
+    def post(self, request, pk):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        payment = self.get_object(request, pk)
-        payment.payment_status = Payment.STATUS_DELETED
-        payment.deleted_at = timezone.now()
-        payment.save(update_fields=['payment_status', 'deleted_at'])
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if not request.user.is_staff:
+            return Response(
+                {'detail': 'Only staff can perform fund-in.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            payment = Payment.objects.exclude(
+                payment_status=Payment.STATUS_DELETED
+            ).get(pk=pk)
+        except Payment.DoesNotExist:
+            raise Http404
+
+        if payment.payment_status != Payment.STATUS_PAID:
+            return Response(
+                {'detail': 'Fund-in is allowed only for paid payments.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if payment.is_fund_in:
+            return Response(
+                {'detail': 'This payment has already been fund-in.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        payment.is_fund_in = True
+        payment.fund_in_at = timezone.now()
+        payment.fund_in_by = request.user
+        payment.fund_in_note = request.data.get('fund_in_note')
+        payment.save(
+            update_fields=[
+                'is_fund_in',
+                'fund_in_at',
+                'fund_in_by',
+                'fund_in_note',
+            ]
+        )
+
+        serializer = PaymentSerializers(payment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
