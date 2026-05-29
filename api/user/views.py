@@ -1,20 +1,36 @@
 from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView, Http404
 
+from api.permissions import IsAdminRole, IsOwner, any_of
 from api.user.models import User, UserAddress
 
 from .serializers import UserAddressSerializer, UserSerializers
 
+CanAccessUserProfile = any_of(
+    IsAdminRole,
+    IsOwner,
+    message='You can only access your own account.',
+)
+
 
 class UserList(APIView):
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [AllowAny()]
+        return [IsAdminRole()]
+
     def get(self, request):
         users = User.objects.all()
         serializer = UserSerializers(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = UserSerializers(data=request.data)
+        serializer = UserSerializers(
+            data=request.data,
+            context={'request': request},
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -22,6 +38,8 @@ class UserList(APIView):
 
 
 class UserDetail(APIView):
+    permission_classes = [IsAuthenticated, CanAccessUserProfile]
+
     def get_object(self, pk):
         try:
             return User.objects.get(pk=pk)
@@ -30,12 +48,32 @@ class UserDetail(APIView):
 
     def get(self, request, pk):
         user = self.get_object(pk)
+        self.check_object_permissions(request, user)
         serializer = UserSerializers(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
         user = self.get_object(pk)
-        serializer = UserSerializers(user, data=request.data)
+        self.check_object_permissions(request, user)
+        serializer = UserSerializers(
+            user,
+            data=request.data,
+            context={'request': request},
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        user = self.get_object(pk)
+        self.check_object_permissions(request, user)
+        serializer = UserSerializers(
+            user,
+            data=request.data,
+            partial=True,
+            context={'request': request},
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
@@ -43,18 +81,14 @@ class UserDetail(APIView):
 
 
 class UserAddressList(APIView):
-    def get(self, request):
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
         addresses = UserAddress.objects.filter(user=request.user)
         serializer = UserAddressSerializer(addresses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
         serializer = UserAddressSerializer(
             data=request.data,
             context={'request': request},
@@ -81,17 +115,11 @@ class UserAddressDetail(APIView):
             raise Http404
 
     def get(self, request, pk):
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
         address = self.get_object(request, pk)
         serializer = UserAddressSerializer(address)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
         address = self.get_object(request, pk)
         serializer = UserAddressSerializer(
             address,
@@ -112,9 +140,6 @@ class UserAddressDetail(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
         address = self.get_object(request, pk)
         address.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
