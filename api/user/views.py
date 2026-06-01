@@ -1,25 +1,16 @@
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView, Http404
 
-from api.permissions import IsAdminRole, IsOwner, any_of
+from api.permissions import CanAccessUserProfile, RegisterPublicAdminList
 from api.user.models import User, UserAddress
 
 from .serializers import UserAddressSerializer, UserSerializers
 
-CanAccessUserProfile = any_of(
-    IsAdminRole,
-    IsOwner,
-    message='You can only access your own account.',
-)
-
 
 class UserList(APIView):
-    def get_permissions(self):
-        if self.request.method == 'POST':
-            return [AllowAny()]
-        return [IsAdminRole()]
+    permission_classes = [RegisterPublicAdminList]
 
     def get(self, request):
         users = User.objects.all()
@@ -108,6 +99,8 @@ class UserAddressList(APIView):
 
 
 class UserAddressDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get_object(self, request, pk):
         try:
             return UserAddress.objects.get(pk=pk, user=request.user)

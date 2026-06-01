@@ -15,6 +15,17 @@ class User(AbstractUser):
         (ROLE_CUSTOMER, 'Customer'),
     ]
 
+    BACK_OFFICE_ROLES = [
+        ROLE_ADMIN,
+        ROLE_STAFF,
+    ]
+
+    SALES_ROLES = [
+        ROLE_ADMIN,
+        ROLE_STAFF,
+        ROLE_SELLER,
+    ]
+
     STATUS_ACTIVE = 'active'
     STATUS_INACTIVE = 'inactive'
 
@@ -45,15 +56,21 @@ class User(AbstractUser):
     def is_staff_role(self):
         return self.role == self.ROLE_STAFF
 
-    def is_staff_or_admin_role(self):
-        return self.is_admin_role() or self.is_staff_role()
-
     def is_seller_role(self):
         return self.role == self.ROLE_SELLER
 
+    def is_customer_role(self):
+        return self.role == self.ROLE_CUSTOMER
+
+    def can_access_back_office(self):
+        return self.role in self.BACK_OFFICE_ROLES
+
+    def can_manage_sales_catalog(self):
+        return self.role in self.SALES_ROLES
+
     def _sync_auth_flags(self):
         self.is_superuser = self.is_admin_role()
-        self.is_staff = self.is_staff_or_admin_role()
+        self.is_staff = self.can_access_back_office()
         self.is_active = self.status == self.STATUS_ACTIVE
 
     def save(self, *args, **kwargs):
