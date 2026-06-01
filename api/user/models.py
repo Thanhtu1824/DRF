@@ -3,6 +3,11 @@ from django.db import models
 
 
 class User(AbstractUser):
+    """
+    One account has exactly one business role (no multi-role on a single user).
+    Use separate accounts if someone needs both seller and back-office access.
+    """
+
     ROLE_ADMIN = 'admin'
     ROLE_STAFF = 'staff'
     ROLE_SELLER = 'seller'
@@ -20,9 +25,22 @@ class User(AbstractUser):
         ROLE_STAFF,
     ]
 
-    SALES_ROLES = [
-        ROLE_ADMIN,
+    # Sellers who list products; staff/admin use BACK_OFFICE for catalog ops.
+    SELLER_CATALOG_ROLES = [
+        ROLE_SELLER,
+    ]
+
+    ORDER_INTERVENTION_ROLES = [
         ROLE_STAFF,
+    ]
+
+    SYSTEM_ADMIN_ROLES = [
+        ROLE_ADMIN,
+    ]
+
+    # Buyer flow only — not staff/admin (operations accounts).
+    SHOPPER_ROLES = [
+        ROLE_CUSTOMER,
         ROLE_SELLER,
     ]
 
@@ -66,7 +84,27 @@ class User(AbstractUser):
         return self.role in self.BACK_OFFICE_ROLES
 
     def can_manage_sales_catalog(self):
-        return self.role in self.SALES_ROLES
+        if self.can_access_back_office():
+            return True
+        return self.role in self.SELLER_CATALOG_ROLES
+
+    def can_intervene_orders(self):
+        return self.role in self.ORDER_INTERVENTION_ROLES
+
+    def can_manage_users(self):
+        return self.role in self.SYSTEM_ADMIN_ROLES
+
+    def can_perform_fund_in(self):
+        return self.can_access_back_office()
+
+    def can_view_inactive_catalog(self):
+        return self.can_access_back_office()
+
+    def can_shop_as_buyer(self):
+        return self.role in self.SHOPPER_ROLES
+
+    def can_view_seller_orders(self):
+        return self.is_seller_role()
 
     def _sync_auth_flags(self):
         self.is_superuser = self.is_admin_role()

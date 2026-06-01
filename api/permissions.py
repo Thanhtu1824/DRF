@@ -2,6 +2,8 @@
 
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 
+from api.order.access import user_may_access_order, user_may_write_order
+
 
 def current_user(request):
     user = getattr(request, 'user', None)
@@ -14,22 +16,14 @@ def is_read_only_method(request):
     return request.method in SAFE_METHODS
 
 
-def user_can_access_back_office(request):
+def user_can_view_inactive_catalog(request):
     user = current_user(request)
     if user is None:
         return False
-    return user.can_access_back_office()
-
-
-def user_can_manage_sales_catalog(request):
-    user = current_user(request)
-    if user is None:
-        return False
-    return user.can_manage_sales_catalog()
+    return user.can_view_inactive_catalog()
 
 
 def customer_read_only_allows(request):
-    """Safe methods: anyone. Mutations: BACK_OFFICE_ROLES."""
     if is_read_only_method(request):
         return True
     user = current_user(request)
@@ -39,7 +33,6 @@ def customer_read_only_allows(request):
 
 
 def seller_catalog_write_allows(request):
-    """Safe methods: anyone. Mutations: SALES_ROLES."""
     if is_read_only_method(request):
         return True
     user = current_user(request)
@@ -115,6 +108,18 @@ class CanAccessBackOffice(BasePermission):
         return user.can_access_back_office()
 
 
+class CanShopAsBuyer(BasePermission):
+    """Cart, payment, placing orders — customer and seller only."""
+
+    message = 'Only shopper accounts can use the buyer flow.'
+
+    def has_permission(self, request, view):
+        user = current_user(request)
+        if user is None:
+            return False
+        return user.can_shop_as_buyer()
+
+
 # ---- Ownership ----
 
 
@@ -138,14 +143,12 @@ class CanAccessUserProfile(BasePermission):
         user = current_user(request)
         if user is None:
             return False
-        if user.is_admin_role():
+        if user.can_manage_users():
             return True
         return obj.pk == user.pk
 
 
 class RegisterPublicAdminList(BasePermission):
-    """POST register is public; GET list is admin only."""
-
     message = 'Only admin can perform this action.'
 
     def has_permission(self, request, view):
@@ -154,31 +157,61 @@ class RegisterPublicAdminList(BasePermission):
         user = current_user(request)
         if user is None:
             return False
-        return user.is_admin_role()
+        return user.can_manage_users()
 
 
-class IsAuthenticatedOwner(BasePermission):
+class IsAuthenticatedOwner(CanShopAsBuyer):
+    """Cart and addresses: shopper + own resource."""
+
     message = 'You can only access your own resources.'
 
+    def has_object_permission(self, request, view, obj):
+        user = current_user(request)
+        if user is None or not user.can_shop_as_buyer():
+            return False
+        owner_field = getattr(view, 'owner_field', 'user')
+        return owner_user_id(obj, owner_field) == user.pk
+
+
+class CanAccessOrder(BasePermission):
+    """
+    Orders: staff intervenes all; seller reads orders with their products;
+    buyer (customer/seller) owns their orders. Admin has no shopper/intervention.
+    Orders cannot be deleted via API — use status=cancelled instead.
+    """
+
+    message = 'You do not have permission to access this order.'
+
     def has_permission(self, request, view):
-        return current_user(request) is not None
+        user = current_user(request)
+        if user is None:
+            return False
+        if request.method == 'POST':
+            return user.can_shop_as_buyer()
+        if user.can_intervene_orders():
+            return True
+        if user.can_view_seller_orders():
+            return True
+        if user.can_shop_as_buyer():
+            return True
+        return False
 
     def has_object_permission(self, request, view, obj):
         user = current_user(request)
         if user is None:
             return False
-        owner_field = getattr(view, 'owner_field', 'user')
-        return owner_user_id(obj, owner_field) == user.pk
+        order = obj.order if hasattr(obj, 'order_id') else obj
+        if not user_may_access_order(user, order):
+            return False
+        if is_read_only_method(request):
+            return True
+        return user_may_write_order(user, order)
 
 
 # ---- Catalog ----
 
 
 class CustomerReadOnly(BasePermission):
-    """
-    Brand, category, voucher: read for all; write for BACK_OFFICE_ROLES.
-    """
-
     message = 'Only back-office roles can modify this resource.'
 
     def has_permission(self, request, view):
@@ -186,17 +219,13 @@ class CustomerReadOnly(BasePermission):
 
 
 class SellerCanManageCatalog(BasePermission):
-    """Product list: read for all; write for SALES_ROLES."""
-
-    message = 'Only sales roles can manage catalog items.'
+    message = 'Only seller or back-office roles can manage catalog items.'
 
     def has_permission(self, request, view):
         return seller_catalog_write_allows(request)
 
 
 class SellerOwnsProduct(BasePermission):
-    """Product detail: read for all; write for back office or owning seller."""
-
     message = 'Only the product seller or back-office roles can perform this action.'
 
     def has_permission(self, request, view):
@@ -214,15 +243,12 @@ class SellerOwnsProduct(BasePermission):
 # ---- Payment ----
 
 
-class CanAccessOwnPayment(BasePermission):
+class CanAccessOwnPayment(CanShopAsBuyer):
     message = 'You can only access your own payments.'
-
-    def has_permission(self, request, view):
-        return current_user(request) is not None
 
     def has_object_permission(self, request, view, obj):
         user = current_user(request)
-        if user is None:
+        if user is None or not user.can_shop_as_buyer():
             return False
         return obj.order.user_id == user.pk
 
@@ -234,4 +260,4 @@ class BackOfficeFundIn(BasePermission):
         user = current_user(request)
         if user is None:
             return False
-        return user.can_access_back_office()
+        return user.can_perform_fund_in()
