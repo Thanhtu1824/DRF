@@ -94,7 +94,7 @@ class IsOwner(BasePermission):
         return owner_user_id(obj, owner_field) == user.pk
 
 
-class IsAdminOrOwner(BasePermission):
+class CanAccessUser(BasePermission):
     message = 'This profile belongs to another user.'
 
     def has_object_permission(self, request, view, obj):
@@ -183,7 +183,7 @@ class CanOrder(BasePermission):
         return user_may_write_order(user, order)
 
 
-class CanBuyOwnPayment(CanBuy):
+class CanAccessPayment(CanBuy):
     message = 'You can only access your own payments.'
 
     def has_object_permission(self, request, view, obj):
