@@ -52,7 +52,7 @@ class UserSerializers(serializers.ModelSerializer):
         return (
             request
             and request.user.is_authenticated
-            and request.user.role == User.ROLE_ADMIN
+            and request.user.is_admin_role()
         )
 
     def validate(self, attrs):

@@ -3,14 +3,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView, Http404
 
-from api.permissions import CanAccessUserProfile, RegisterPublicAdminList
+from api.permissions import IsAdminOrOwner, RegisterPublic
 from api.user.models import User, UserAddress
 
 from .serializers import UserAddressSerializer, UserSerializers
 
 
 class UserList(APIView):
-    permission_classes = [RegisterPublicAdminList]
+    permission_classes = [RegisterPublic]
 
     def get(self, request):
         users = User.objects.all()
@@ -29,7 +29,7 @@ class UserList(APIView):
 
 
 class UserDetail(APIView):
-    permission_classes = [IsAuthenticated, CanAccessUserProfile]
+    permission_classes = [IsAuthenticated, IsAdminOrOwner]
 
     def get_object(self, pk):
         try:

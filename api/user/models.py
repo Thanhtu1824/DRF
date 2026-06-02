@@ -25,20 +25,10 @@ class User(AbstractUser):
         ROLE_STAFF,
     ]
 
-    # Sellers who list products; staff/admin use BACK_OFFICE for catalog ops.
     SELLER_CATALOG_ROLES = [
         ROLE_SELLER,
     ]
 
-    ORDER_INTERVENTION_ROLES = [
-        ROLE_STAFF,
-    ]
-
-    SYSTEM_ADMIN_ROLES = [
-        ROLE_ADMIN,
-    ]
-
-    # Buyer flow only — not staff/admin (operations accounts).
     SHOPPER_ROLES = [
         ROLE_CUSTOMER,
         ROLE_SELLER,
@@ -80,35 +70,28 @@ class User(AbstractUser):
     def is_customer_role(self):
         return self.role == self.ROLE_CUSTOMER
 
-    def can_access_back_office(self):
+    # ---- can_*: business capability (used by permission classes) ----
+
+    def can_manage_back_office(self):
         return self.role in self.BACK_OFFICE_ROLES
 
-    def can_manage_sales_catalog(self):
-        if self.can_access_back_office():
+    def can_buy(self):
+        return self.role in self.SHOPPER_ROLES
+
+    def can_sell(self):
+        if self.can_manage_back_office():
             return True
         return self.role in self.SELLER_CATALOG_ROLES
 
     def can_intervene_orders(self):
-        return self.role in self.ORDER_INTERVENTION_ROLES
+        return self.is_staff_role()
 
-    def can_manage_users(self):
-        return self.role in self.SYSTEM_ADMIN_ROLES
-
-    def can_perform_fund_in(self):
-        return self.can_access_back_office()
-
-    def can_view_inactive_catalog(self):
-        return self.can_access_back_office()
-
-    def can_shop_as_buyer(self):
-        return self.role in self.SHOPPER_ROLES
-
-    def can_view_seller_orders(self):
+    def can_fulfill_orders(self):
         return self.is_seller_role()
 
     def _sync_auth_flags(self):
         self.is_superuser = self.is_admin_role()
-        self.is_staff = self.can_access_back_office()
+        self.is_staff = self.can_manage_back_office()
         self.is_active = self.status == self.STATUS_ACTIVE
 
     def save(self, *args, **kwargs):
