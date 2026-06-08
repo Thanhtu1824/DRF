@@ -26,7 +26,13 @@ from api.product.views import (
     ProductVariantDetail,
     ProductVariantList,
 )
-from api.user.views import UserAddressDetail, UserAddressList, UserDetail, UserList
+from api.user.auth_views import LoginView, LogoutView, MeView, RefreshTokenView
+from api.user.views import (
+    UserAddressDetail,
+    UserAddressList,
+    UserDetail,
+    UserList,
+)
 from api.cart.views import CartDetail, CartList, CartItemDetail, CartItemList
 from api.voucher.views import VoucherDetail, VoucherList
 from api.order.views import OrderDetail, OrderList, OrderItemDetail, OrderItemList
@@ -34,6 +40,10 @@ from api.payment.views import PaymentDetail, PaymentFundIn, PaymentList
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('auth/login', LoginView.as_view()),
+    path('auth/logout', LogoutView.as_view()),
+    path('auth/refresh', RefreshTokenView.as_view()),
+    path('auth/me', MeView.as_view()),
     path('brand', BrandList.as_view()),
     path('brand/<int:pk>', BrandDetail.as_view()),
     path('category', CategoryList.as_view()),
